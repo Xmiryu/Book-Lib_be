@@ -5,6 +5,7 @@ import com.example.zti_books.book.BookRepository;
 import com.example.zti_books.exceptions.BookNotExists;
 import com.example.zti_books.exceptions.InvalidCredentials;
 import com.example.zti_books.exceptions.UserExistsException;
+import com.example.zti_books.exceptions.UserNotExists;
 import lombok.AllArgsConstructor;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -55,13 +56,13 @@ public class UserService implements UserDetailsService {
         return true;
     }
 
-    private User getContextUser() {
+    private User getContextUser() throws UserNotExists {
 
         String email = ((UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getUsername();
-        return this.userRepository.findByEmail(email).orElseThrow();
+        return this.userRepository.findByEmail(email).orElseThrow(UserNotExists::new);
     }
 
-    public void addReadBook(String bookId) throws BookNotExists {
+    public void addReadBook(String bookId) throws BookNotExists, UserNotExists {
         Book book = this.bookRepository.findById(bookId).orElseThrow(BookNotExists::new);
         User u = getContextUser();
         Set<Book> read =  u.getReadBooks();
@@ -73,7 +74,7 @@ public class UserService implements UserDetailsService {
         this.userRepository.save(u);
     }
 
-    public void addToReadBooks(String bookId) throws BookNotExists{
+    public void addToReadBooks(String bookId) throws BookNotExists, UserNotExists {
         Book book = this.bookRepository.findById(bookId).orElseThrow(BookNotExists::new);
         User u = getContextUser();
         Set<Book> toRead =  u.getToRead();
@@ -85,7 +86,7 @@ public class UserService implements UserDetailsService {
 
     }
 
-    public void deleteToReadBook(String bookId) throws BookNotExists{
+    public void deleteToReadBook(String bookId) throws BookNotExists, UserNotExists {
         Book book = this.bookRepository.findById(bookId).orElseThrow(BookNotExists::new);
         User u = getContextUser();
         Set<Book> toRead =  u.getToRead();
@@ -94,12 +95,12 @@ public class UserService implements UserDetailsService {
         this.userRepository.save(u);
     }
 
-    public Set<Book> getReadBooks(){
+    public Set<Book> getReadBooks() throws UserNotExists {
         User u = getContextUser();
         return u.getReadBooks();
     }
 
-    public Set<Book> getToReadBooks(){
+    public Set<Book> getToReadBooks() throws UserNotExists {
         User u = getContextUser();
         return u.getToRead();
     }
